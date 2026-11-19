@@ -158,7 +158,6 @@ impl EditorPluginComponents for RenderBpsPlugin {
         Vec::new()
     }
 }
-impl EditorPluginScripting for RenderBpsPlugin {}
 
 #[cfg(feature = "builtin")]
 mod builtin_provider;
