@@ -1,5 +1,6 @@
 [package]
 name = "render_bps_plugin"
+license = "MPL-2.0"
 version = "0.1.0"
 edition = "2021"
 description = "Visual editor for Helio render graphs, built on the Graphy canvas"
