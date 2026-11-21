@@ -18,7 +18,7 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicU32, AtomicU64};
 use std::sync::{Arc, Mutex};
 
-use engine_backend::scene::{new_scene, resolve_level_assets, RuntimeLevel};
+use engine_backend::scene::{new_scene, RuntimeLevel};
 use engine_backend::services::gpu_renderer::{GpuRenderer, GpuRendererBuilder};
 use engine_backend::services::render_runtimes::{
     self, RuntimeDescription, RuntimeHandle, UpdateMode,
@@ -89,9 +89,13 @@ impl PipelinePreview {
         let scene = Arc::new(parking_lot::RwLock::new(new_scene()));
         match write_test_scene() {
             Ok(path) => {
+                // Never waits for the preview's assets: the renderer's frame
+                // pump binds them as they finish, and this runs on the UI thread.
                 let mut store = scene.write();
-                match RuntimeLevel::load_into(&path, &mut store.world) {
-                    Ok(_) => resolve_level_assets(&mut store.world),
+                match RuntimeLevel::prepare_for_project(&path)
+                    .and_then(|prepared| RuntimeLevel::apply_prepared(prepared, &mut store.world))
+                {
+                    Ok(_) => {}
                     Err(error) => tracing::warn!("Preview scene did not load: {error}"),
                 }
                 let _ = engine_fs::virtual_fs::delete_path(&path);
