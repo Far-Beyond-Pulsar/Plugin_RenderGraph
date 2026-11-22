@@ -6,7 +6,8 @@ edition = "2021"
 description = "Visual editor for Helio render graphs, built on the Graphy canvas"
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+# Linked into the editor, which links the shared libraries: a cdylib cannot.
+crate-type = ["rlib"]
 name = "render_bps_plugin"
 
 # Built into the editor (feature `builtin`, on in pulsar_engine) it registers at link
