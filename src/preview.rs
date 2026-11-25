@@ -69,6 +69,8 @@ pub struct PipelinePreview {
     engine: Arc<Mutex<GpuRenderer>>,
     /// The engine runtime drawing `engine` into `surface`.
     runtime: RuntimeHandle,
+    /// Keeps the runtime told where its window stands (focus, minimize).
+    window_presence: Option<gpui::Subscription>,
     surface: Option<WgpuSurfaceHandle>,
     frames: Arc<AtomicU64>,
     display_refresh_millihertz: Arc<AtomicU32>,
@@ -118,6 +120,7 @@ impl PipelinePreview {
         let preview = Self {
             engine,
             runtime,
+            window_presence: None,
             surface: None,
             frames: Arc::new(AtomicU64::new(0)),
             display_refresh_millihertz: Arc::new(AtomicU32::new(0)),
@@ -250,6 +253,15 @@ impl Panel for PipelinePreview {
 
 impl Render for PipelinePreview {
     fn render(&mut self, window: &mut Window, cx: &mut Context<Self>) -> impl IntoElement {
+        if self.window_presence.is_none() {
+            // The frame policy draws a background window's preview slowly and
+            // a minimized one not at all.
+            self.window_presence = Some(ui_helio_viewport::follow_window(
+                self.runtime.clone(),
+                window,
+                cx,
+            ));
+        }
         if self.surface.is_none() {
             let refresh_hz = window
                 .display(cx)
